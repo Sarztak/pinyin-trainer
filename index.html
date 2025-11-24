@@ -3,29 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
   <title>Pinyin + Audio Trainer</title>
 
 </head>
 <body>
   <div class="app">
-    <div class="title">Pinyin Trainer with Audio</div>
-    <div class="subtitle">Type the pinyin with tone numbers.</div>
+      <div class="title">Pinyin Trainer with Audio</div>
+      <div class="subtitle">Type the pinyin with tone numbers.</div>
 
-    <div class="prompt" id="pinyinPrompt"></div>
-    <div class="english" id="englishPrompt"></div>
+      <div style="display: flex; gap: 40px; align-items: flex-start;">
+          <!-- Left side: Main content -->
+          <div style="flex: 1;">
+              <div class="prompt" id="pinyinPrompt"></div>
+              <div class="english" id="englishPrompt"></div>
 
-    <button class="audio-btn" id="audioButton">Play Audio</button>
+              <button class="audio-btn" id="audioButton">Play Audio</button>
 
-    <div class="hanzi" id="hanziDisplay"></div>
+              <div class="hanzi" id="hanziDisplay"></div>
+          </div>
 
-    <form id="form">
-      <div class="input-row">
-        <input id="input" type="text" autocomplete="off" placeholder="Type pinyin..." />
-        <button type="submit">Enter</button>
+          <!-- Right side: Stroke order canvas -->
+          <div id="characterCanvas" style="width: 200px; height: 200px;"></div>
       </div>
-    </form>
 
-    <div id="feedback" class="feedback"></div>
+      <form id="form">
+          <div class="input-row">
+              <input id="input" type="text" autocomplete="off" placeholder="Type pinyin..." />
+              <button type="submit">Enter</button>
+          </div>
+      </form>
+      <div id="feedback" class="feedback"></div>
   </div>
 
   <script src="deck.js"></script>

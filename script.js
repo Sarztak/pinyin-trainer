@@ -55,6 +55,28 @@ function convertPinyinToToneMarks(pinyin) {
     }).join(' ');
 }
 
+let writer = null;
+
+function showStrokeOrder(hanzi) {
+    const canvas = document.getElementById('characterCanvas');
+    canvas.innerHTML = ''; // Clear previous
+    
+    // Handle multi-character words by showing first character
+    const firstChar = hanzi[0];
+    
+    writer = HanziWriter.create(canvas, firstChar, {
+        width: 200,
+        height: 200,
+        padding: 5,
+        showOutline: true,
+        strokeAnimationSpeed: 1.5,
+        delayBetweenStrokes: 200
+    });
+    
+    // Auto-animate on load
+    writer.animateCharacter();
+}
+
 const pinyinPrompt = document.getElementById("pinyinPrompt");
 const englishPrompt = document.getElementById("englishPrompt");
 const hanziDisplay = document.getElementById("hanziDisplay");
@@ -62,6 +84,7 @@ const audioButton = document.getElementById("audioButton");
 const inputEl = document.getElementById("input");
 const feedbackEl = document.getElementById("feedback");
 const formEl = document.getElementById("form");
+
 
 let index = 0;
 
@@ -92,6 +115,10 @@ function showCard() {
     feedbackEl.className = "feedback";
     inputEl.value = "";
     inputEl.focus();
+
+    // Show stroke order animation
+    showStrokeOrder(card.hanzi);
+
 }
 
 audioButton.addEventListener("click", () => {
