@@ -55,26 +55,65 @@ function convertPinyinToToneMarks(pinyin) {
     }).join(' ');
 }
 
-let writer = null;
+let writers = [];
+let currentIndex = 0;   // which character is animating
 
 function showStrokeOrder(hanzi) {
     const canvas = document.getElementById('characterCanvas');
-    canvas.innerHTML = ''; // Clear previous
-    
-    // Handle multi-character words by showing first character
-    const firstChar = hanzi[0];
-    
-    writer = HanziWriter.create(canvas, firstChar, {
-        width: 200,
-        height: 200,
-        padding: 5,
-        showOutline: true,
-        strokeAnimationSpeed: 1.5,
-        delayBetweenStrokes: 200
+    canvas.innerHTML = '';
+    writers = [];
+    currentIndex = 0;
+
+    const chars = hanzi.split('');
+    const charWidth = Math.min(150, 300 / chars.length);
+
+    canvas.style.width = (charWidth * chars.length) + 'px';
+    canvas.style.height = charWidth + 'px';
+    canvas.style.display = 'flex';
+    canvas.style.gap = '10px';
+
+    chars.forEach(char => {
+        const charDiv = document.createElement('div');
+        charDiv.style.width = charWidth + 'px';
+        charDiv.style.height = charWidth + 'px';
+        canvas.appendChild(charDiv);
+
+        const w = HanziWriter.create(charDiv, char, {
+            width: charWidth,
+            height: charWidth,
+            padding: 5,
+            showOutline: true,
+            showCharacter: true
+        });
+
+        writers.push(w);
     });
-    
-    // Auto-animate on load
-    writer.animateCharacter();
+
+    if (writers.length > 0) {
+        beginSequence();
+    }
+}
+
+function beginSequence() {
+    runAnimation(currentIndex);
+}
+
+function runAnimation(i) {
+    const writer = writers[i];
+
+    console.log(`Starting animation for character index ${i}`);
+
+    writer.animateCharacter({
+        onComplete: () => {
+            console.log(`Finished animation for index ${i}`);
+
+            // Move to next character
+            currentIndex = (i + 1) % writers.length;
+
+            // After last → loops back to first automatically
+            runAnimation(currentIndex);
+        }
+    });
 }
 
 const pinyinPrompt = document.getElementById("pinyinPrompt");
