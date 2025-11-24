@@ -9,6 +9,52 @@ function shuffle(array) {
 
 shuffle(deck);
 
+
+function convertPinyinToToneMarks(pinyin) {
+    const toneMap = {
+        'a': ['a', 'ā', 'á', 'ǎ', 'à'],
+        'e': ['e', 'ē', 'é', 'ě', 'è'],
+        'i': ['i', 'ī', 'í', 'ǐ', 'ì'],
+        'o': ['o', 'ō', 'ó', 'ǒ', 'ò'],
+        'u': ['u', 'ū', 'ú', 'ǔ', 'ù'],
+        'ü': ['ü', 'ǖ', 'ǘ', 'ǚ', 'ǜ'],
+        'v': ['ü', 'ǖ', 'ǘ', 'ǚ', 'ǜ']
+    };
+
+    return pinyin.split(' ').map(syllable => {
+        // Extract tone number
+        const match = syllable.match(/^([a-zü]+)([0-5])$/i);
+        if (!match) return syllable;
+
+        let [, letters, tone] = match;
+        tone = parseInt(tone);
+        
+        // Neutral tone (5 or 0) - no mark needed
+        if (tone === 5 || tone === 0) return letters;
+
+        letters = letters.toLowerCase();
+
+        // Priority: a/e > ou > others
+        if (letters.includes('a')) {
+            return letters.replace('a', toneMap['a'][tone]);
+        } else if (letters.includes('e')) {
+            return letters.replace('e', toneMap['e'][tone]);
+        } else if (letters.includes('ou')) {
+            return letters.replace('o', toneMap['o'][tone]);
+        } else {
+            // Apply to last vowel
+            for (let i = letters.length - 1; i >= 0; i--) {
+                const char = letters[i];
+                if (toneMap[char]) {
+                    return letters.substring(0, i) + toneMap[char][tone] + letters.substring(i + 1);
+                }
+            }
+        }
+        
+        return syllable;
+    }).join(' ');
+}
+
 const pinyinPrompt = document.getElementById("pinyinPrompt");
 const englishPrompt = document.getElementById("englishPrompt");
 const hanziDisplay = document.getElementById("hanziDisplay");
@@ -35,7 +81,10 @@ function playAudio() {
 
 function showCard() {
     const card = deck[index];
-    pinyinPrompt.textContent = card.pinyin;
+    const toneMarks = convertPinyinToToneMarks(card.pinyin);
+    
+    // Show tone marks for reading, tone numbers for typing reference
+    pinyinPrompt.innerHTML = `${toneMarks} <span style="color: #888; font-size: 0.9em;">(${card.pinyin})</span>`;
     englishPrompt.textContent = card.english;
     hanziDisplay.textContent = card.hanzi;
     hanziDisplay.classList.remove("visible");
