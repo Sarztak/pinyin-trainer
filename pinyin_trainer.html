@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pinyin + Audio Trainer</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .app {
+      background: #020617;
+      padding: 24px 28px;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      max-width: 500px;
+      width: 100%;
+    }
+    .title {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
+    .prompt {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+    .english {
+      font-size: 14px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
+    .audio-btn {
+      background: #1e3a8a;
+      color: #e5e7eb;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+    .audio-btn:hover {
+      background: #1e40af;
+    }
+    .hanzi {
+      font-size: 64px;
+      text-align: center;
+      margin: 16px 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .hanzi.visible {
+      opacity: 1;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      outline: none;
+      font-size: 14px;
+    }
+    input[type="text"]:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 1px #1d4ed8;
+    }
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .feedback {
+      margin-top: 10px;
+      min-height: 18px;
+      font-size: 13px;
+    }
+    .correct {
+      color: #22c55e;
+    }
+    .incorrect {
+      color: #f97316;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="title">Pinyin Trainer with Audio</div>
+    <div class="subtitle">Type the pinyin with tone numbers.</div>
+
+    <div class="prompt" id="pinyinPrompt"></div>
+    <div class="english" id="englishPrompt"></div>
+
+    <button class="audio-btn" id="audioButton">Play Audio</button>
+
+    <div class="hanzi" id="hanziDisplay"></div>
+
+    <form id="form">
+      <div class="input-row">
+        <input id="input" type="text" autocomplete="off" placeholder="Type pinyin..." />
+        <button type="submit">Enter</button>
+      </div>
+    </form>
+
+    <div id="feedback" class="feedback"></div>
+  </div>
+
+  <script>
+    const deck = [
+      { hanzi: "我", pinyin: "wo3", english: "I; me" },
+      { hanzi: "你", pinyin: "ni3", english: "you" },
+      { hanzi: "好", pinyin: "hao3", english: "good" },
+      { hanzi: "是", pinyin: "shi4", english: "to be" },
+      { hanzi: "吗", pinyin: "ma5", english: "question particle" },
+      { hanzi: "很", pinyin: "hen3", english: "very" },
+      { hanzi: "谢谢", pinyin: "xie4 xie5", english: "thank you" },
+      { hanzi: "中国", pinyin: "zhong1 guo2", english: "China" }
+    ];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    shuffle(deck);
+
+    const pinyinPrompt = document.getElementById("pinyinPrompt");
+    const englishPrompt = document.getElementById("englishPrompt");
+    const hanziDisplay = document.getElementById("hanziDisplay");
+    const audioButton = document.getElementById("audioButton");
+    const inputEl = document.getElementById("input");
+    const feedbackEl = document.getElementById("feedback");
+    const formEl = document.getElementById("form");
+
+    let index = 0;
+
+    function normalize(str) {
+      return str.trim().toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function buildAudioURL(hanzi) {
+      return `https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q=${encodeURIComponent(hanzi)}`;
+    }
+
+    function showCard() {
+      const card = deck[index];
+      pinyinPrompt.textContent = card.pinyin;
+      englishPrompt.textContent = card.english;
+      hanziDisplay.textContent = card.hanzi;
+      hanziDisplay.classList.remove("visible");
+      feedbackEl.textContent = "";
+      feedbackEl.className = "feedback";
+      inputEl.value = "";
+      inputEl.focus();
+    }
+
+    audioButton.addEventListener("click", () => {
+      const hanzi = deck[index].hanzi;
+      const audio = new Audio(buildAudioURL(hanzi));
+      audio.play();
+    });
+
+    formEl.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const user = normalize(inputEl.value);
+      const answer = normalize(deck[index].pinyin);
+
+      if (!user) return;
+
+      if (user === answer) {
+        feedbackEl.textContent = "Correct.";
+        feedbackEl.className = "feedback correct";
+      } else {
+        feedbackEl.textContent = `Incorrect. Correct: ${deck[index].pinyin}`;
+        feedbackEl.className = "feedback incorrect";
+      }
+
+      hanziDisplay.classList.add("visible");
+
+      setTimeout(() => {
+        index = (index + 1) % deck.length;
+        showCard();
+      }, 900);
+    });
+
+    showCard();
+  </script>
+</body>
+</html>
