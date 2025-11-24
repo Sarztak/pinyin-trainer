@@ -57,28 +57,39 @@ function convertPinyinToToneMarks(pinyin) {
 
 let writers = [];
 let currentIndex = 0;   // which character is animating
+let currentLoopId = 0; // NEW: identifies which animation cycle is active
 
-function showStrokeOrder(hanzi) {
+function showStrokeOrder(word) {
+    // Cancel any previous animation loop
+    currentLoopId++;
+    const thisLoop = currentLoopId;
+
     const canvas = document.getElementById('characterCanvas');
     canvas.innerHTML = '';
     writers = [];
     currentIndex = 0;
 
-    const chars = hanzi.split('');
+    const chars = word.split('');
     const charWidth = Math.min(150, 300 / chars.length);
 
+    // Canvas layout (horizontal, left-to-right)
     canvas.style.width = (charWidth * chars.length) + 'px';
     canvas.style.height = charWidth + 'px';
-    canvas.style.display = 'flex';
+
+    canvas.style.display = 'flex';          // IMPORTANT
+    canvas.style.flexDirection = 'row';     // FORCE HORIZONTAL
+    canvas.style.alignItems = 'center';
+    canvas.style.justifyContent = 'flex-start';
     canvas.style.gap = '10px';
 
+    // Build writers for each character
     chars.forEach(char => {
-        const charDiv = document.createElement('div');
-        charDiv.style.width = charWidth + 'px';
-        charDiv.style.height = charWidth + 'px';
-        canvas.appendChild(charDiv);
+        const div = document.createElement('div');
+        div.style.width = charWidth + 'px';
+        div.style.height = charWidth + 'px';
+        canvas.appendChild(div);
 
-        const w = HanziWriter.create(charDiv, char, {
+        const writer = HanziWriter.create(div, char, {
             width: charWidth,
             height: charWidth,
             padding: 5,
@@ -86,35 +97,31 @@ function showStrokeOrder(hanzi) {
             showCharacter: true
         });
 
-        writers.push(w);
+        writers.push(writer);
     });
 
+    // Start animation loop for this word
     if (writers.length > 0) {
-        beginSequence();
+        animateAtIndex(0, thisLoop);
     }
 }
 
-function beginSequence() {
-    runAnimation(currentIndex);
-}
 
-function runAnimation(i) {
+function animateAtIndex(i, loopId) {
+    if (loopId !== currentLoopId) return;  // kills inner loop if word changed
+
     const writer = writers[i];
-
-    console.log(`Starting animation for character index ${i}`);
 
     writer.animateCharacter({
         onComplete: () => {
-            console.log(`Finished animation for index ${i}`);
+            if (loopId !== currentLoopId) return;  // second safety check
 
-            // Move to next character
-            currentIndex = (i + 1) % writers.length;
-
-            // After last → loops back to first automatically
-            runAnimation(currentIndex);
+            const nextIndex = (i + 1) % writers.length;
+            animateAtIndex(nextIndex, loopId);      // ← inner loop continues
         }
     });
 }
+
 
 const pinyinPrompt = document.getElementById("pinyinPrompt");
 const englishPrompt = document.getElementById("englishPrompt");
