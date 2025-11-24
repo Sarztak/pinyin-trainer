@@ -1,4 +1,3 @@
-
 const deck = [
     { hanzi: "我", pinyin: "wo3", english: "I; me" },
     { hanzi: "你", pinyin: "ni3", english: "you" },
@@ -37,6 +36,12 @@ function buildAudioURL(hanzi) {
     return `https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q=${encodeURIComponent(hanzi)}`;
 }
 
+function playAudio() {
+    const hanzi = deck[index].hanzi;
+    const audio = new Audio(buildAudioURL(hanzi));
+    audio.play();
+}
+
 function showCard() {
     const card = deck[index];
     pinyinPrompt.textContent = card.pinyin;
@@ -50,9 +55,24 @@ function showCard() {
 }
 
 audioButton.addEventListener("click", () => {
-    const hanzi = deck[index].hanzi;
-    const audio = new Audio(buildAudioURL(hanzi));
-    audio.play();
+    playAudio();
+});
+
+// Keyboard controls
+document.addEventListener("keydown", function (e) {
+    // ESC to play audio
+    if (e.key === "Escape") {
+        e.preventDefault();
+        playAudio();
+        inputEl.focus();
+    }
+
+    // ArrowRight to skip to next card
+    if (e.key === "ArrowRight") {
+        e.preventDefault();
+        index = (index + 1) % deck.length;
+        showCard();
+    }
 });
 
 formEl.addEventListener("submit", function(e) {
