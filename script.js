@@ -1,13 +1,13 @@
 let deck = [...deckData];
 
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-    }
-}
+// function shuffle(array) {
+//     for (let i = array.length - 1; i > 0; i--) {
+//     const j = Math.floor(Math.random() * (i + 1));
+//     [array[i], array[j]] = [array[j], array[i]];
+//     }
+// }
 
-shuffle(deck);
+// shuffle(deck);
 
 
 function convertPinyinToToneMarks(pinyin) {
@@ -57,7 +57,7 @@ function convertPinyinToToneMarks(pinyin) {
 
 let writers = [];
 let currentIndex = 0;   // which character is animating
-let currentLoopId = 0; // NEW: identifies which animation cycle is active
+let currentLoopId = 0; // identifies which animation cycle is active
 
 function showStrokeOrder(word) {
     // Cancel any previous animation loop
@@ -117,7 +117,7 @@ function animateAtIndex(i, loopId) {
             if (loopId !== currentLoopId) return;  // second safety check
 
             const nextIndex = (i + 1) % writers.length;
-            animateAtIndex(nextIndex, loopId);      // ← inner loop continues
+            animateAtIndex(nextIndex, loopId);      // inner loop continues
         }
     });
 }
@@ -138,14 +138,25 @@ function normalize(str) {
     return str.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+// Not used due to rate limit
 function buildAudioURL(hanzi) {
     return `https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q=${encodeURIComponent(hanzi)}`;
 }
 
+function getAudioPath(hanzi) {
+    return `audio/${hanzi}.mp3`;
+}
+
 function playAudio() {
+    if (!deck[index]) return;
+    
     const hanzi = deck[index].hanzi;
-    const audio = new Audio(buildAudioURL(hanzi));
-    audio.play();
+    const audioPath = getAudioPath(hanzi);
+    
+    const audio = new Audio(audioPath);
+    audio.play().catch(err => {
+        console.error("Audio playback failed:", err);
+    });
 }
 
 function showCard() {
